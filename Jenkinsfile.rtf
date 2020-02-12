@@ -1,0 +1,46 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf600
+{\fonttbl\f0\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red196\green211\blue47;\red26\green26\blue26;}
+{\*\expandedcolortbl;;\cssrgb\c80784\c84706\c23529;\cssrgb\c13333\c13333\c13333;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\fs23\fsmilli11900 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 node \{\
+    def app\
+\
+    stage('Clone repository') \{\
+        /* Let's make sure we have the repository cloned to our workspace */\
+\
+        checkout scm\
+    \}\
+\
+    stage('Build image') \{\
+        /* This builds the actual image; synonymous to\
+         * docker build on the command line */\
+\
+        app = docker.build("getintodevops/hellonode")\
+    \}\
+\
+    stage('Test image') \{\
+        /* Ideally, we would run a test framework against our image.\
+         * For this example, we're using a Volkswagen-type approach ;-) */\
+\
+        app.inside \{\
+            sh 'echo "Tests passed"'\
+        \}\
+    \}\
+\
+    stage('Push image') \{\
+        /* Finally, we'll push the image with two tags:\
+         * First, the incremental build number from Jenkins\
+         * Second, the 'latest' tag.\
+         * Pushing multiple tags is cheap, as all the layers are reused. */\
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') \{\
+            app.push("$\{env.BUILD_NUMBER\}")\
+            app.push("latest")\
+        \}\
+    \}\
+\}\
+}
